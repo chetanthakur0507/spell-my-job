@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useCallback } from "react"
-import { useAuth } from "@/hooks/use-auth"
+  const proceedToAnalysis = () => {
+    router.push("/dashboard/analyze")
+  }
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -49,116 +49,136 @@ export default function UploadPage() {
   const handleFile = (file: File) => {
     const allowedTypes = [
       "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ]
-
-    if (!allowedTypes.includes(file.type)) {
-      alert("Please upload a PDF or Word document")
-      return
+      setUploadedFile(file)
+      uploadFile(file)
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      // 10MB limit
-      alert("File size must be less than 10MB")
-      return
-    }
+    // Upload file to server with progress tracking
+    const uploadFile = (file: File) => {
+      const userId = profile?.uid ?? user?.uid
+      if (!userId) {
+        alert("You must be signed in to upload a resume")
+        "use client"
 
-    setUploadedFile(file)
-    uploadFile(file)
-  }
+        import type React from "react"
 
-  // Upload file to server with progress tracking
-  const uploadFile = (file: File) => {
-    const userId = profile?.uid ?? user?.uid
-    if (!userId) {
-      alert("You must be signed in to upload a resume")
-      return
-    }
+        import { useState, useCallback } from "react"
+        import { useAuth } from "@/hooks/use-auth"
+        import { Button } from "@/components/ui/button"
+        import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+        import { Progress } from "@/components/ui/progress"
+        import { Upload, FileText, CheckCircle, AlertCircle, ArrowLeft, Zap } from "lucide-react"
+        import Link from "next/link"
+        import { useRouter } from "next/navigation"
 
-    setIsUploading(true)
-    setUploadProgress(0)
+        export default function UploadPage() {
+          const [dragActive, setDragActive] = useState(false)
+          const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+          const [uploadProgress, setUploadProgress] = useState(0)
+          const [isUploading, setIsUploading] = useState(false)
+          const [uploadComplete, setUploadComplete] = useState(false)
+          const router = useRouter()
+          const { user, profile } = useAuth()
 
-    const formData = new FormData()
-    formData.append("file", file)
-    formData.append("userId", userId)
+          const handleDrag = useCallback((e: React.DragEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            if (e.type === "dragenter" || e.type === "dragover") {
+              setDragActive(true)
+            } else if (e.type === "dragleave") {
+              setDragActive(false)
+            }
+          }, [])
 
-    const xhr = new XMLHttpRequest()
-    xhr.open("POST", "/api/upload-resume")
+          const handleDrop = useCallback((e: React.DragEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setDragActive(false)
 
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) {
-        const percent = Math.round((e.loaded / e.total) * 100)
-        setUploadProgress(percent)
-      }
-    }
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+              handleFile(e.dataTransfer.files[0])
+            }
+          }, [])
 
-    xhr.onload = () => {
-      setIsUploading(false)
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          const res = JSON.parse(xhr.responseText)
-          if (res.success) {
-            setUploadProgress(100)
-            setUploadComplete(true)
-          } else {
-            alert(res.error || "Upload failed")
+          const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+            if (e.target.files && e.target.files[0]) {
+              handleFile(e.target.files[0])
+            }
           }
-        } catch (err) {
-          setUploadComplete(true)
-        }
-      } else {
-        alert("Upload failed: " + xhr.statusText)
-      }
-    }
 
-    xhr.onerror = () => {
-      setIsUploading(false)
-      alert("Upload failed due to network error")
-    }
+          const handleFile = (file: File) => {
+            const allowedTypes = [
+              "application/pdf",
+              "application/msword",
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ]
 
-    xhr.send(formData)
-  }
+            if (!allowedTypes.includes(file.type)) {
+              alert("Please upload a PDF or Word document")
+              return
+            }
 
-  const proceedToAnalysis = () => {
-    router.push("/dashboard/analyze")
-  }
+            if (file.size > 10 * 1024 * 1024) {
+              // 10MB limit
+              alert("File size must be less than 10MB")
+              return
+            }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link href="/dashboard" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="h-5 w-5" />
-                <span>Back to Dashboard</span>
-              </Link>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Zap className="h-6 w-6 text-purple-600" />
-              <span className="text-xl font-bold text-gray-900">SpellMyJob</span>
-            </div>
-          </div>
-        </div>
-      </header>
+            setUploadedFile(file)
+            uploadFile(file)
+          }
 
-      <div className="px-6 py-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload Your Resume</h1>
-            <p className="text-gray-600">Upload your resume to get AI-powered analysis and job matching</p>
-          </div>
+          // Upload file to server with progress tracking
+          const uploadFile = (file: File) => {
+            const userId = profile?.uid ?? user?.uid
+            if (!userId) {
+              alert("You must be signed in to upload a resume")
+              return
+            }
 
-          {!uploadComplete ? (
-            <Card className="border-2">
-              <CardHeader>
-                <CardTitle>Resume Upload</CardTitle>
-                <CardDescription>Supported formats: PDF, DOC, DOCX (Max size: 10MB)</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {!uploadedFile ? (
+            setIsUploading(true)
+            setUploadProgress(0)
+
+            const formData = new FormData()
+            formData.append("file", file)
+            formData.append("userId", userId)
+
+            const xhr = new XMLHttpRequest()
+            xhr.open("POST", "/api/upload-resume")
+
+            xhr.upload.onprogress = (e) => {
+              if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100)
+                setUploadProgress(percent)
+              }
+            }
+
+            xhr.onload = () => {
+              setIsUploading(false)
+              if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                  const res = JSON.parse(xhr.responseText)
+                  if (res.success) {
+                    setUploadProgress(100)
+                    setUploadComplete(true)
+                  } else {
+                    alert(res.error || "Upload failed")
+                  }
+                } catch (err) {
+                  setUploadComplete(true)
+                }
+              } else {
+                alert("Upload failed: " + xhr.statusText)
+              }
+            }
+
+            xhr.onerror = () => {
+              setIsUploading(false)
+              alert("Upload failed due to network error")
+            }
+
+            xhr.send(formData)
+          }
                   <div
                     className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
                       dragActive

@@ -40,7 +40,7 @@ With **Spell My Job**, you simply **drag and drop your resume** into the applica
 
 ## 🛠 Tech Stack
 
-- **Frontend:** HTML, CSS, JavaScript
+- **Frontend:** Next.js,Firebase
 - **Backend:** Node.js, Express.js
 - **AI Processing:** OpenAI API (or relevant NLP model)
 - **Hosting:** Vercel
